@@ -20,6 +20,7 @@ public class Trends {
 	private Map<String, List<Datum>> income = new HashMap<String, List<Datum>>();
 	private Map<String, List<Datum>> age = new HashMap<String, List<Datum>>();
 
+	
 	public List<Datum> getReachd() {
 		return reachd;
 	}

@@ -24,19 +24,6 @@ import com.google.gson.reflect.TypeToken;
 
 public class CompeteAPIInvoker {
 
-	/*
-	 * private String trends_url =
-	 * "https://apps.compete.com/sites/DOMAIN/trended/METRIC/?apikey=APIKEY";
-	 * private String keyword_url =
-	 * "https://apps.compete.com/sites/facebook.com/kw/kw_all/?apikey=APIKEY";
-	 * private String incoming_traffic_url =
-	 * "https://apps.compete.com/sites/facebook.com/iref/iref_all/?apikey=APIKEY"
-	 * ; private String additional = "&latest=&start_date=&end_date="; private
-	 * String multiple =
-	 * "https://apps.compete.com/sites/compete.com/trended/search/?apikey=APIKEY&metrics=uv,rank"
-	 * ;
-	 */
-
 	private String trends_url = "https://apps.compete.com/sites/%s/trended/%s/?apikey=%s";
 	private String keyword_url = "https://apps.compete.com/sites/%s/kw/kw_all/?apikey=%s";
 	private String incoming_traffic_url = "https://apps.compete.com/sites/%s/iref/iref_all/?apikey=%s";
@@ -96,6 +83,18 @@ public class CompeteAPIInvoker {
 		return fetchData(url, metric);
 	}
 
+	public CompeteResponse getTrends(String metric, String domain, String latest,
+			String startDate, String endDate) throws CompeteAPIException {
+		String url = getBaseURL(metric, domain);
+		if (latest != null)
+			url += "&latest=" + latest;
+		if (startDate != null)
+			url += "&start_date=" + startDate;
+		if (endDate != null)
+			url += "&end_date=" + endDate;
+		return fetchData(url, metric);
+	}
+	
 	private String getBaseURL(String metric, String domain) {
 		String url = null;
 		if ("keyword".equalsIgnoreCase(metric))
@@ -185,20 +184,10 @@ public class CompeteAPIInvoker {
 		}
 		// System.out.println(json);
 		Gson gson = new Gson();
-		if (metric.equals("inc") || metric.equals(""))
+		if (metric.equals("inc") || metric.equals("age"))
 			return getNestedResponse(json, metric);
 		
 		return gson.fromJson(json.trim(), CompeteResponse.class);
-	}
-
-	public static void main(String[] args) throws Exception{
-		String response = "{\"status\":\"OK\",\"data\":{\"trends\":{\"male\":[{\"date\":\"201310\",\"value\":\"48.69\"},{\"date\":\"201311\",\"value\":\"46.73\"},{\"date\":\"201312\",\"value\":\"51.66\"},{\"date\":\"201401\",\"value\":\"57.62\"},{\"date\":\"201402\",\"value\":\"59.95\"},{\"date\":\"201403\",\"value\":\"61.37\"},{\"date\":\"201404\",\"value\":\"57.15\"},{\"date\":\"201405\",\"value\":\"58.97\"},{\"date\":\"201406\",\"value\":\"50.47\"},{\"date\":\"201407\",\"value\":\"69.60\"},{\"date\":\"201408\",\"value\":\"63.13\"},{\"date\":\"201409\",\"value\":\"48.22\"},{\"date\":\"201410\",\"value\":\"49.42\"}],\"female\":[{\"date\":\"201310\",\"value\":\"51.31\"},{\"date\":\"201311\",\"value\":\"53.27\"},{\"date\":\"201312\",\"value\":\"48.34\"},{\"date\":\"201401\",\"value\":\"42.38\"},{\"date\":\"201402\",\"value\":\"40.05\"},{\"date\":\"201403\",\"value\":\"38.63\"},{\"date\":\"201404\",\"value\":\"42.85\"},{\"date\":\"201405\",\"value\":\"41.03\"},{\"date\":\"201406\",\"value\":\"49.53\"},{\"date\":\"201407\",\"value\":\"30.40\"},{\"date\":\"201408\",\"value\":\"36.87\"},{\"date\":\"201409\",\"value\":\"51.78\"},{\"date\":\"201410\",\"value\":\"50.58\"}]},\"query_cost\":13,\"trends_frequency\":\"monthly\"}}";
-		JSONObject js = new JSONObject(response);
-		for (String str : js.getNames(js))
-			System.out.println(str);
-		Gson gson = new Gson();
-		CompeteResponse res = gson.fromJson(response, CompeteResponse.class);
-		System.out.println(res.getStatus());
 	}
 
 	private CompeteResponse getNestedResponse(String json, String metric)
@@ -213,7 +202,7 @@ public class CompeteAPIInvoker {
 			
 			JSONObject trends = ((JSONObject)((JSONObject)jsonObj.get("data")).get("trends"));
 
-			for (String name : trends.getNames(trends)) {
+			for (String name : JSONObject.getNames(trends)) {
 				jsonStr = trends.get(name).toString();
 				datum = gson.fromJson(jsonStr.trim(), new TypeToken<List<Datum>>() {
 				}.getType());
